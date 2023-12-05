@@ -1,16 +1,19 @@
-﻿namespace AdventOfCode2023;
+﻿using System.Buffers;
+using System.Reflection.Metadata.Ecma335;
+
+namespace AdventOfCode2023;
 
 public static class Day5
 {
-    private static string[] _mapNames = 
+    private static Dictionary<string, Dictionary<Range, long>?> _mapNames = new()
     {
-        "seed-to-soil",
-        "soil-to-fertilizer",
-        "fertilizer-to-water",
-        "water-to-light",
-        "light-to-temperature",
-        "temperature-to-humidity",
-        "humidity-to-location",
+        { "seed-to-soil", null },
+        { "soil-to-fertilizer", null },
+        { "fertilizer-to-water", null },
+        { "water-to-light", null },
+        { "light-to-temperature", null },
+        { "temperature-to-humidity", null },
+        { "humidity-to-location", null },
     };
     
     public static long Part1(string[] rows)
@@ -23,7 +26,7 @@ public static class Day5
         foreach (long position in positions)
         {
             long location = GetLocationFromPosition(rows, "seed-to-soil", position);
-            
+
             if (location < lowestLocation)
             {
                 lowestLocation = location;
@@ -31,6 +34,61 @@ public static class Day5
         }
 
         return lowestLocation;
+    }
+
+    public static long Part2(string[] rows)
+    {
+        ArraySegment<long> positions = GetLocations(rows[0]);
+
+        long lowestLocation = long.MaxValue;
+
+        long count = 1;
+        
+        foreach (long position in positions)
+        {
+            long location = GetLocationFromPosition(rows, "seed-to-soil", position);
+            
+            if (location < lowestLocation)
+            {
+                lowestLocation = location;
+                Console.WriteLine(lowestLocation);
+            }
+        }
+
+        return lowestLocation;
+    }
+
+    private static ArraySegment<long> GetLocations(string row)
+    {
+        string[] positionRanges =
+            row.Substring(row.IndexOf(':') + 2).Split(' ');
+
+        int totalPositions = 0;
+        
+        for (int i = 1; i < positionRanges.Length; i+=2)
+        {
+            totalPositions += int.Parse(positionRanges[i]);
+        }
+
+        long[] positions = ArrayPool<long>.Shared.Rent(totalPositions);
+
+        int position = 0;
+        
+        for (int i = 0; i < positionRanges.Length; i+=2)
+        {
+            long start = long.Parse(positionRanges[i]);
+            long range = long.Parse(positionRanges[i + 1]);
+
+            for (long j = start; j < start + range; j++)
+            {
+                positions[position] = j;
+                position++;
+            }
+        }
+
+        Console.WriteLine($"Total positions: {positions.Length}");
+        
+        return new ArraySegment<long>(positions, 0, totalPositions);
     }
 
     private static Dictionary<Range, long> CreateMap(string mapName, IReadOnlyList<string> rows)
@@ -77,15 +135,27 @@ public static class Day5
             destination - source);
     }
 
-    private static long GetLocationFromPosition(string[] rows, string mapName, long position)
+    private static long GetLocationFromPosition(IReadOnlyList<string> rows, string mapName, long position)
     {
-        Dictionary<Range, long> map = CreateMap(mapName, rows);
-        
-        long delta = map.FirstOrDefault(kvp =>
-                position >= kvp.Key.Start &&
-                position <= kvp.Key.End, new(new Range(0, 1), 0))
-            .Value;
+        Dictionary<Range, long> map = GetOrCreateMap(mapName, rows);
 
+        // for (int i = 0; i < map.Keys.Count; i++)
+        // {
+        //     var key = map.Keys.ElementAt(i);
+        //     bool inRange = key.IsInRange(position);
+        //
+        //     if (inRange)
+        //     {
+        //         Console.WriteLine($"Match found: {i}/{map.Keys.Count}");
+        //         position += map[key];
+        //         break;
+        //     }
+        // }
+        
+        long delta = map.FirstOrDefault(kvp => kvp.Key.IsInRange(position),
+                new(new Range(0, 1), 0))
+            .Value;
+        
         position += delta;
 
         if (mapName == "humidity-to-location")
@@ -98,16 +168,28 @@ public static class Day5
 
     private static string GetNextMapName(string mapName)
     {
-        for (int i = 0; i < _mapNames.Length; i++)
+        return mapName switch
         {
-            if (_mapNames[i] == mapName)
-            {
-                return _mapNames[i + 1];
-            }
-        }
-
-        return string.Empty;
+            "seed-to-soil" => "soil-to-fertilizer",
+            "soil-to-fertilizer" => "fertilizer-to-water",
+            "fertilizer-to-water" => "water-to-light",
+            "water-to-light" => "light-to-temperature",
+            "light-to-temperature" => "temperature-to-humidity",
+            "temperature-to-humidity" => "humidity-to-location",
+            _ => string.Empty,
+        };
     }
 
-    record struct Range(long Start, long End);
+    private static Dictionary<Range, long> GetOrCreateMap(string mapName, IReadOnlyList<string> rows)
+    {
+        return _mapNames[mapName] ??= CreateMap(mapName, rows);
+    }
+
+    private readonly record struct Range(long Start, long End)
+    {
+        public bool IsInRange(long value)
+        {
+            return value >= Start && value <= End;
+        } 
+    }
 }
