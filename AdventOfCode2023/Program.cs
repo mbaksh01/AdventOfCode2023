@@ -1,10 +1,7 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using AdventOfCode2023;
 
-using System.Threading.Channels;
-using AdventOfCode2023;
+StreamReader sr = new("Days/Day4.txt");
 
-StreamReader sr = new("Days/Day2Part1.txt");
-
-int result = Day2.Part2(sr.ReadToEnd().Split('\n'));
+int result = Day4.Part2(sr.ReadToEnd().Split(Environment.NewLine));
 
 Console.WriteLine(result);
