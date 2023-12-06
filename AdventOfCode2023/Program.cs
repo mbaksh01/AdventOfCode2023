@@ -1,9 +1,9 @@
 ﻿using AdventOfCode2023;
 
 ThreadPool.SetMinThreads(50, 50);
-StreamReader sr = new("Days/Day5.txt");
+StreamReader sr = new("Days/Day6.txt");
 
-long result = Day5.Part2(sr.ReadToEnd().Split(Environment.NewLine));
+long result = Day6.Part2(sr.ReadToEnd().Split(Environment.NewLine));
 
 Console.WriteLine(result);
 
