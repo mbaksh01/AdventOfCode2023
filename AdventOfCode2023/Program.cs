@@ -3,7 +3,7 @@
 ThreadPool.SetMinThreads(50, 50);
 StreamReader sr = new("Days/Day7.txt");
 
-long result = Day7.Part1(sr.ReadToEnd().Split(Environment.NewLine));
+long result = Day7.Part2(sr.ReadToEnd().Split(Environment.NewLine));
 
 Console.WriteLine(result);
 
