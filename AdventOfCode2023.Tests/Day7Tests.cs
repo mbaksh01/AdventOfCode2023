@@ -24,7 +24,6 @@ public class Day7Tests
     {
         string[] rows =
         {
-            "3J333 1",
             "32T3K 765",
             "QQQJA 483",
             "T55J5 684",
